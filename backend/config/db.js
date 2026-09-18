@@ -1,10 +1,11 @@
 const mysql = require('mysql2/promise');
 
+// Usamos process.env para que las credenciales estén ocultas y seguras
 const pool = mysql.createPool({
-    host: 'localhost',       
-    user: 'root',            // Cambia esto si tu usuario en MySQL es distinto
-    password: '',            // Pon tu contraseña de MySQL aquí (si no tienes, déjalo vacío)
-    database: 'miderma_db',  
+    host: process.env.DB_HOST,       
+    user: process.env.DB_USER,       
+    password: process.env.DB_PASSWORD, 
+    database: process.env.DB_NAME,     
     waitForConnections: true,
     connectionLimit: 10,     
     queueLimit: 0
@@ -12,7 +13,7 @@ const pool = mysql.createPool({
 
 pool.getConnection()
     .then(connection => {
-        console.log('¡Conexión exitosa a la base de datos de Miderma!');
+        console.log('¡Conexión exitosa a la base de datos de Miderma en Hostinger!');
         connection.release(); 
     })
     .catch(err => {

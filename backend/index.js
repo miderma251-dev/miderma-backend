@@ -13,6 +13,7 @@ const rutasProductos = require('./routes/productos');
 const rutasPaquetes = require('./routes/paquetes');
 const rutasPublicaciones = require('./routes/publicaciones');
 const rutasResultados = require('./routes/resultados');
+const rutasDoctores = require('./routes/doctores'); // <-- NUEVA RUTA
 
 // --- USAR RUTAS ---
 app.use('/api/auth', rutasAuth);
@@ -20,6 +21,7 @@ app.use('/api/productos', rutasProductos);
 app.use('/api/paquetes', rutasPaquetes);
 app.use('/api/publicaciones', rutasPublicaciones);
 app.use('/api/resultados', rutasResultados);
+app.use('/api/doctores', rutasDoctores); // <-- NUEVA RUTA
 
 // Ruta de prueba
 app.get('/', (req, res) => {

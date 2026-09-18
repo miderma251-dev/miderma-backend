@@ -12,6 +12,15 @@ const obtenerPublicacionPorId = async (req, res) => {
     } catch (error) { res.status(500).json({ error: 'Error interno' }); }
 };
 
+// Nueva función para obtener los artículos relacionados
+const obtenerPublicacionesRelacionadas = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { categoria } = req.query; // Lo mandaremos por query string
+        res.json(await Publicacion.obtenerRelacionados(id, categoria));
+    } catch (error) { res.status(500).json({ error: 'Error al obtener relacionados' }); }
+};
+
 const crearPublicacion = async (req, res) => {
     try {
         const resultado = await Publicacion.crear(req.body);
@@ -33,7 +42,6 @@ const desactivarPublicacion = async (req, res) => {
     } catch (error) { res.status(500).json({ error: 'Error al eliminar' }); }
 };
 
-// NUEVA FUNCIÓN CONTROLADOR
 const cambiarEstadoPublicacion = async (req, res) => {
     try {
         const { estado } = req.body;
@@ -42,8 +50,7 @@ const cambiarEstadoPublicacion = async (req, res) => {
     } catch (error) { res.status(500).json({ error: 'Error al cambiar estado' }); }
 };
 
-// Asegúrate de exportar la nueva función al final
 module.exports = { 
-    obtenerPublicaciones, obtenerPublicacionPorId, crearPublicacion, 
-    actualizarPublicacion, desactivarPublicacion, cambiarEstadoPublicacion 
+    obtenerPublicaciones, obtenerPublicacionPorId, obtenerPublicacionesRelacionadas, 
+    crearPublicacion, actualizarPublicacion, desactivarPublicacion, cambiarEstadoPublicacion 
 };

@@ -1,7 +1,7 @@
 const pool = require('../config/db');
 
 const Producto = {
-    // 1. Obtener todos (con filtros dinámicos incluyendo MARCA)
+    // 1. Obtener todos
     obtenerTodos: async (filtros) => {
         let query = 'SELECT * FROM productos WHERE estado = 1';
         const values = [];
@@ -14,61 +14,61 @@ const Producto = {
             query += ' AND especialidad = ?';
             values.push(filtros.especialidad);
         }
-        // NUEVO FILTRO DE MARCA
         if (filtros.marca) {
             query += ' AND marca = ?';
             values.push(filtros.marca);
         }
         if (filtros.oferta === 'true') {
-            query += ' AND etiqueta_descuento IS NOT NULL';
+            query += ' AND precio_oferta IS NOT NULL';
         }
         if (filtros.precio_min) {
-            query += ' AND precio >= ?';
-            values.push(filtros.precio_min);
+            query += ' AND (precio_oferta >= ? OR (precio_oferta IS NULL AND precio >= ?))';
+            values.push(filtros.precio_min, filtros.precio_min);
         }
         if (filtros.precio_max) {
-            query += ' AND precio <= ?';
-            values.push(filtros.precio_max);
+            query += ' AND (precio_oferta <= ? OR (precio_oferta IS NULL AND precio <= ?))';
+            values.push(filtros.precio_max, filtros.precio_max);
         }
 
         const [rows] = await pool.query(query, values);
         return rows;
     },
 
-    // 2. Obtener un solo producto por ID
+    // 2. Obtener por ID
     obtenerPorId: async (id) => {
         const [rows] = await pool.query('SELECT * FROM productos WHERE id = ? AND estado = 1', [id]);
         return rows[0]; 
     },
 
-    // 3. Crear un producto (Incluyendo Marca)
+    // 3. Crear (AHORA INCLUYE PRECIO_OFERTA)
     crear: async (datos) => {
-        const { nombre, descripcion, precio, stock, url_imagen_cloudinary, categoria, marca, especialidad, beneficios, etiqueta_descuento } = datos;
+        const { nombre, descripcion, precio, precio_oferta, stock, url_imagen_cloudinary, categoria, marca, especialidad, beneficios, etiqueta_descuento } = datos;
         const query = `
             INSERT INTO productos 
-            (nombre, descripcion, precio, stock, url_imagen_cloudinary, categoria, marca, especialidad, beneficios, etiqueta_descuento) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (nombre, descripcion, precio, precio_oferta, stock, url_imagen_cloudinary, categoria, marca, especialidad, beneficios, etiqueta_descuento) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
         const [resultado] = await pool.query(query, [
-            nombre, descripcion, precio, stock || 0, url_imagen_cloudinary, categoria, marca || 'Sin Marca', especialidad, beneficios, etiqueta_descuento
+            nombre, descripcion, precio, precio_oferta || null, stock || 0, url_imagen_cloudinary, categoria, marca || 'Sin Marca', especialidad, beneficios, etiqueta_descuento
         ]);
         return resultado;
     },
 
-    // 4. Actualizar un producto completo (PUT) (Incluyendo Marca)
+    // 4. Actualizar (AHORA INCLUYE PRECIO_OFERTA)
     actualizar: async (id, datos) => {
-        const { nombre, descripcion, precio, stock, url_imagen_cloudinary, categoria, marca, especialidad, beneficios, etiqueta_descuento } = datos;
+        const { nombre, descripcion, precio, precio_oferta, stock, url_imagen_cloudinary, categoria, marca, especialidad, beneficios, etiqueta_descuento } = datos;
         const query = `
             UPDATE productos SET 
-            nombre = ?, descripcion = ?, precio = ?, stock = ?, url_imagen_cloudinary = ?, categoria = ?, marca = ?, especialidad = ?, beneficios = ?, etiqueta_descuento = ?
+            nombre = ?, descripcion = ?, precio = ?, precio_oferta = ?, stock = ?, url_imagen_cloudinary = ?, categoria = ?, marca = ?, especialidad = ?, beneficios = ?, etiqueta_descuento = ?
             WHERE id = ?
         `;
         const [resultado] = await pool.query(query, [
-            nombre, descripcion, precio, stock, url_imagen_cloudinary, categoria, marca, especialidad, beneficios, etiqueta_descuento, id
+            nombre, descripcion, precio, precio_oferta || null, stock, url_imagen_cloudinary, categoria, marca, especialidad, beneficios, etiqueta_descuento, id
         ]);
         return resultado;
     },
 
+    // 5. Inventario
     registrarMovimiento: async (id_producto, cantidad, tipo_movimiento, motivo, usuario = 'admin') => {
         const conexion = await pool.getConnection();
         try {
